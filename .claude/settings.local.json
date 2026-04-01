@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -E \"^zod$|^@t3-oss\")"
+      "Bash(grep -E \"^zod$|^@t3-oss\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k\\) for k in d.get\\(''''exports'''',{}\\).keys\\(\\)]\")",
+      "Bash(grep -r createServerFn c:/Users/timotejl/Desktop/JS/flux/node_modules/@tanstack/ --include=*.d.ts -l)",
+      "Bash(grep -r \"getWebRequest\\\\|getRequestHeaders\\\\|useRequestHeaders\" c:/Users/timotejl/Desktop/JS/flux/node_modules/@tanstack/ --include=*.d.ts)"
     ]
   }
 }
