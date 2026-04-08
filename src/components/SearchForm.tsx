@@ -1,97 +1,163 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-
+import DateRangePicker from './DateRangePicker'
 import { authClient } from '#/lib/auth-client'
+import AirportCombobox from './AirportCombobox'
 
 type Props = {
   initialOrigin?: string
   initialDestination?: string
   initialDate?: string
+  initialReturnDate?: string
+  initialTripType?: '1' | '2'
+  initialPassengers?: string
+  initialTravelClass?: '1' | '2' | '3' | '4'
+}
+
+function ChevronDown() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="pointer-events-none"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  )
+}
+
+function Select({
+  value,
+  onChange,
+  children,
+}: {
+  value: string
+  onChange: (v: string) => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="relative inline-flex items-center">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="appearance-none cursor-pointer rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] py-2.5 pl-3 pr-8 text-sm text-[var(--input-text)] outline-none focus:border-[var(--input-border-focus)] focus:bg-[var(--input-bg-focus)]"
+      >
+        {children}
+      </select>
+      <span className="pointer-events-none absolute right-2.5 text-[var(--text-muted)]">
+        <ChevronDown />
+      </span>
+    </div>
+  )
 }
 
 export default function SearchForm({
   initialOrigin = '',
   initialDestination = '',
   initialDate = '',
+  initialReturnDate = '',
+  initialTripType = '2',
+  initialPassengers = '1',
+  initialTravelClass = '1',
 }: Props) {
   const { data: session } = authClient.useSession()
   const navigate = useNavigate()
   const [origin, setOrigin] = useState(initialOrigin)
   const [destination, setDestination] = useState(initialDestination)
   const [date, setDate] = useState(initialDate)
+  const [returnDate, setReturnDate] = useState(initialReturnDate)
+  const [tripType, setTripType] = useState<'1' | '2'>(initialTripType)
+  const [passengers, setPassengers] = useState(initialPassengers)
+  const [travelClass, setTravelClass] = useState<'1' | '2' | '3' | '4'>(
+    initialTravelClass,
+  )
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (!session) {
-      void navigate({ to: '/sign-in' })
+      void navigate({ to: '/' })
       return
     }
+    if (!origin || !destination || !date) return
+    if (tripType === '1' && !returnDate) return
     void navigate({
       to: '/search',
       search: {
-        origin: origin.toUpperCase(),
-        destination: destination.toUpperCase(),
+        origin,
+        destination,
         date,
+        ...(tripType === '1' && returnDate ? { returnDate } : {}),
+        tripType,
+        passengers,
+        travelClass,
       },
     })
   }
 
   return (
-    <form
-      onSubmit={handleSearch}
-      className="island-shell rounded-2xl p-4 sm:p-6"
-    >
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="flex flex-col gap-1 text-left">
-          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
-            From
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. LJU"
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
-            maxLength={3}
-            required
-            className="rounded-xl border border-[var(--line)] bg-white/60 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-[var(--sea-ink)] outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-[var(--sea-ink-soft)] focus:border-[var(--lagoon)] focus:bg-white/80"
-          />
-        </div>
+    <form onSubmit={handleSearch} className="card p-4 sm:p-6">
+      {/* Row 1: trip options */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Select value={tripType} onChange={(v) => setTripType(v as '1' | '2')}>
+          <option value="2">One way</option>
+          <option value="1">Round trip</option>
+        </Select>
 
-        <div className="flex flex-col gap-1 text-left">
-          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
-            To
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. JFK"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            maxLength={3}
-            required
-            className="rounded-xl border border-[var(--line)] bg-white/60 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-[var(--sea-ink)] outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-[var(--sea-ink-soft)] focus:border-[var(--lagoon)] focus:bg-white/80"
-          />
-        </div>
+        <Select value={passengers} onChange={setPassengers}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+            <option key={n} value={String(n)}>
+              {n} passenger{n > 1 ? 's' : ''}
+            </option>
+          ))}
+        </Select>
 
-        <div className="flex flex-col gap-1 text-left">
-          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
-            Date
-          </label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            min={new Date().toISOString().split('T')[0]}
-            className="rounded-xl border border-[var(--line)] bg-white/60 px-4 py-3 text-sm text-[var(--sea-ink)] outline-none focus:border-[var(--lagoon)] focus:bg-white/80"
-          />
-        </div>
+        <Select
+          value={travelClass}
+          onChange={(v) => setTravelClass(v as '1' | '2' | '3' | '4')}
+        >
+          <option value="1">Economy</option>
+          <option value="2">Premium Economy</option>
+          <option value="3">Business</option>
+          <option value="4">First Class</option>
+        </Select>
+      </div>
+
+      {/* Row 2: airports  */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
+        <AirportCombobox
+          label="From"
+          value={origin}
+          onChange={setOrigin}
+          placeholder="City or airport"
+        />
+        <AirportCombobox
+          label="To"
+          value={destination}
+          onChange={setDestination}
+          placeholder="City or airport"
+        />
+
+        <DateRangePicker
+          date={date}
+          returnDate={returnDate}
+          tripType={tripType}
+          onDateChange={setDate}
+          onReturnDateChange={setReturnDate}
+          onTripTypeChange={setTripType}
+        />
       </div>
 
       <button
         type="submit"
-        className="mt-4 w-full rounded-xl bg-[var(--lagoon-deep)] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+        className="mt-4 w-full rounded-xl bg-[var(--brand-deep)] px-6 py-3 text-sm font-semibold text-[var(--btn-text)] transition hover:opacity-90 active:scale-[0.99]"
       >
-        {session ? 'Search flights' : 'Sign in to search'}
+        Search flights
       </button>
     </form>
   )

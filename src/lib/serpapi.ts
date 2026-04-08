@@ -26,6 +26,7 @@ export type FlightSegment = {
   flight_number: string
   airplane?: string
   travel_class?: string
+  legroom?: string
 }
 
 export type Layover = {
@@ -42,6 +43,7 @@ export type Flight = {
   price: number
   airline_logo?: string
   departure_token?: string
+  type?: string
   carbon_emissions?: {
     this_flight: number
     typical_for_this_route: number
@@ -59,18 +61,34 @@ export type FlightResult = {
   }
 }
 
+export type SearchOptions = {
+  origin: string
+  destination: string
+  date: string
+  returnDate?: string
+  tripType: '1' | '2'
+  passengers: string
+  travelClass: '1' | '2' | '3' | '4'
+}
+
 export async function searchFlights(
-  origin: string,
-  destination: string,
-  date: string,
+  opts: SearchOptions,
 ): Promise<FlightResult> {
-  return fetchSerpApi<FlightResult>({
+  const params: Record<string, string> = {
     engine: 'google_flights',
-    departure_id: origin,
-    arrival_id: destination,
-    outbound_date: date,
-    type: '2',
+    departure_id: opts.origin,
+    arrival_id: opts.destination,
+    outbound_date: opts.date,
+    type: opts.tripType,
+    adults: opts.passengers,
+    travel_class: opts.travelClass,
     currency: 'EUR',
     hl: 'en',
-  })
+  }
+
+  if (opts.tripType === '1' && opts.returnDate) {
+    params.return_date = opts.returnDate
+  }
+
+  return fetchSerpApi<FlightResult>(params)
 }

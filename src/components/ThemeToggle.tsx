@@ -37,7 +37,7 @@ export default function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-      className="rounded-xl border border-[var(--line)] bg-white/60 p-2 text-[var(--sea-ink)] transition hover:bg-white/80"
+      className="rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] p-2 text-[var(--sea-ink)] transition hover:bg-[var(--input-bg-focus)]"
     >
       {theme === 'light' ? (
         <svg
