@@ -41,6 +41,17 @@
   /* Button */
   --btn-text: #ffffff;
 
+  /* Aliases used by components */
+  --sea-ink: var(--text-primary);
+  --sea-ink-soft: var(--text-secondary);
+  --lagoon: var(--brand);
+  --lagoon-deep: var(--brand-deep);
+  --line: var(--border);
+  --link-bg-hover: var(--dropdown-hover);
+  --header-bg: rgba(248, 250, 252, 0.85);
+  --chip-bg: var(--brand-soft);
+  --chip-line: var(--border);
+
   /* Misc */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
   --shadow-card-hover:
@@ -175,4 +186,20 @@ body {
   --rdp-accent-color: var(--brand);
   --rdp-accent-background-color: var(--brand-soft);
   --rdp-background-color: var(--brand-soft);
+}
+
+/* Component aliases */
+.island-shell {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(8px);
+}
+
+.island-kicker {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--brand-deep);
 }

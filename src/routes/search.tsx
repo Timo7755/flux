@@ -47,6 +47,19 @@ const classLabels: Record<string, string> = {
   '4': 'First Class',
 }
 
+function buildGoogleFlightsUrl(opts: {
+  origin: string
+  destination: string
+  date: string
+  returnDate?: string
+  tripType: '1' | '2'
+}): string {
+  const params = new URLSearchParams({
+    q: `Flights from ${opts.origin} to ${opts.destination} on ${opts.date}`,
+  })
+  return `https://www.google.com/travel/flights?${params.toString()}`
+}
+
 function SearchPage() {
   const {
     origin,
@@ -108,22 +121,72 @@ function SearchPage() {
       </div>
 
       <Await promise={flightsPromise} fallback={<ResultsSpinner />}>
-        {(data: FlightResult) => <SearchResults data={data} />}
+        {(data: FlightResult) => (
+          <SearchResults
+            data={data}
+            search={{
+              origin,
+              destination,
+              date,
+              returnDate,
+              tripType,
+              passengers,
+              travelClass,
+            }}
+          />
+        )}
       </Await>
     </main>
   )
 }
 
-function SearchResults({ data }: { data: FlightResult }) {
+type SearchParams = {
+  origin: string
+  destination: string
+  date: string
+  returnDate?: string
+  tripType: '1' | '2'
+  passengers: string
+  travelClass: '1' | '2' | '3' | '4'
+}
+
+function PriceBadge({ level }: { level: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    low: { label: 'Low prices', className: 'bg-green-100 text-green-700' },
+    typical: {
+      label: 'Typical prices',
+      className: 'bg-yellow-100 text-yellow-700',
+    },
+    high: { label: 'High prices', className: 'bg-red-100 text-red-700' },
+  }
+  const { label, className } = config[level] ?? {
+    label: level,
+    className: 'bg-[var(--border)] text-[var(--sea-ink-soft)]',
+  }
+  return (
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-semibold ${className}`}
+    >
+      {label}
+    </span>
+  )
+}
+
+function SearchResults({
+  data,
+  search,
+}: {
+  data: FlightResult
+  search: SearchParams
+}) {
   const flights = [...(data.best_flights ?? []), ...(data.other_flights ?? [])]
+  const googleFlightsUrl = buildGoogleFlightsUrl(search)
 
   return (
     <>
       {data.price_insights && (
-        <div className="island-shell mb-4 rounded-xl p-4 text-sm">
-          <span className="font-semibold text-[var(--sea-ink)]">
-            Price insight:{' '}
-          </span>
+        <div className="island-shell mb-4 rounded-xl p-4 text-sm flex flex-wrap items-center gap-3">
+          <PriceBadge level={data.price_insights.price_level} />
           <span className="text-[var(--sea-ink-soft)]">
             Lowest available is{' '}
             <span className="font-semibold text-[var(--lagoon-deep)]">
@@ -144,7 +207,13 @@ function SearchResults({ data }: { data: FlightResult }) {
       ) : (
         <div className="space-y-3">
           {flights.map((flight, i) => (
-            <FlightCard key={i} flight={flight} />
+            <FlightCard
+              key={i}
+              flight={flight}
+              offerId={String(i)}
+              googleFlightsUrl={googleFlightsUrl}
+              search={search}
+            />
           ))}
         </div>
       )}

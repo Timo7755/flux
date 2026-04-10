@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SearchOfferOfferIdRouteImport } from './routes/search_.offer.$offerId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const SearchRoute = SearchRouteImport.update({
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchOfferOfferIdRoute = SearchOfferOfferIdRouteImport.update({
+  id: '/search_/offer/$offerId',
+  path: '/search/offer/$offerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -33,30 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/search/offer/$offerId': typeof SearchOfferOfferIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/search/offer/$offerId': typeof SearchOfferOfferIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/search': typeof SearchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/search_/offer/$offerId': typeof SearchOfferOfferIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/search' | '/api/auth/$'
+  fullPaths: '/' | '/search' | '/api/auth/$' | '/search/offer/$offerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search' | '/api/auth/$'
-  id: '__root__' | '/' | '/search' | '/api/auth/$'
+  to: '/' | '/search' | '/api/auth/$' | '/search/offer/$offerId'
+  id: '__root__' | '/' | '/search' | '/api/auth/$' | '/search_/offer/$offerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SearchRoute: typeof SearchRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  SearchOfferOfferIdRoute: typeof SearchOfferOfferIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search_/offer/$offerId': {
+      id: '/search_/offer/$offerId'
+      path: '/search/offer/$offerId'
+      fullPath: '/search/offer/$offerId'
+      preLoaderRoute: typeof SearchOfferOfferIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SearchRoute: SearchRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  SearchOfferOfferIdRoute: SearchOfferOfferIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

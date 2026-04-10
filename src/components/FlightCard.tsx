@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import type { Flight } from '#/lib/serpapi'
 
 function formatDuration(minutes: number): string {
@@ -10,7 +11,27 @@ function formatTime(dateTime: string): string {
   return dateTime.split(' ')[1] ?? dateTime
 }
 
-export default function FlightCard({ flight }: { flight: Flight }) {
+type SearchParams = {
+  origin: string
+  destination: string
+  date: string
+  returnDate?: string
+  tripType: '1' | '2'
+  passengers: string
+  travelClass: '1' | '2' | '3' | '4'
+}
+
+export default function FlightCard({
+  flight,
+  offerId,
+  googleFlightsUrl,
+  search,
+}: {
+  flight: Flight
+  offerId: string
+  googleFlightsUrl: string
+  search: SearchParams
+}) {
   const first = flight.flights[0]
   const last = flight.flights[flight.flights.length - 1]
   const stops = flight.flights.length - 1
@@ -73,6 +94,25 @@ export default function FlightCard({ flight }: { flight: Flight }) {
           </p>
           <p className="text-xs text-[var(--sea-ink-soft)]">per person</p>
         </div>
+      </div>
+
+      <div className="mt-4 flex gap-2 border-t border-[var(--line)] pt-4">
+        <Link
+          to="/search/offer/$offerId"
+          params={{ offerId }}
+          search={search}
+          className="flex-1 rounded-xl bg-[var(--brand-deep)] px-4 py-2 text-center text-sm font-semibold text-[var(--btn-text)] no-underline"
+        >
+          View details
+        </Link>
+        <a
+          href={googleFlightsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex-1 rounded-xl border border-[var(--line)] px-4 py-2 text-center text-sm font-semibold text-[var(--sea-ink)] no-underline"
+        >
+          Open in Google Flights
+        </a>
       </div>
     </div>
   )

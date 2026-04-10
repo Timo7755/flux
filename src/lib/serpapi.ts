@@ -36,6 +36,12 @@ export type Layover = {
   overnight?: boolean
 }
 
+export type BookingOption = {
+  name?: string
+  price?: number
+  url?: string
+}
+
 export type Flight = {
   flights: FlightSegment[]
   layovers?: Layover[]
@@ -43,15 +49,25 @@ export type Flight = {
   price: number
   airline_logo?: string
   departure_token?: string
+  booking_token?: string
   type?: string
+  extensions?: string[]
+  overnight?: boolean
   carbon_emissions?: {
     this_flight: number
     typical_for_this_route: number
     difference_percent: number
   }
+  booking_options?: BookingOption[]
 }
 
 export type FlightResult = {
+  search_metadata?: {
+    id?: string
+    status?: string
+    created_at?: string
+  }
+  search_parameters?: Record<string, unknown>
   best_flights?: Flight[]
   other_flights?: Flight[]
   price_insights?: {
