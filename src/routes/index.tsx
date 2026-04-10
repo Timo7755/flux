@@ -14,6 +14,9 @@ function HomePage() {
         <h1 className="display-title mb-4 text-4xl font-bold text-[var(--sea-ink)] sm:text-5xl">
           Google flights clone made with TanStack start
         </h1>
+        <h1 className="display-title mb-4 text-4xl font-bold text-[var(--sea-ink)] sm:text-5xl">
+          DEMO APP{' '}
+        </h1>
         <p className="mb-10 text-lg text-[var(--sea-ink-soft)]">
           Search real-time Google Flights data. Data is fetched with SerpAPI
           free plan. Project was made for learning TanStack Start
