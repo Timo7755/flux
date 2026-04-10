@@ -15,8 +15,8 @@ function HomePage() {
           Google flights clone made with TanStack start
         </h1>
         <p className="mb-10 text-lg text-[var(--sea-ink-soft)]">
-          Search real-time Google Flights data. Set an origin, pick a
-          destination, and discover the best prices for any date.
+          Search real-time Google Flights data. Data is fetched with SerpAPI
+          free plan. Project was made for learning TanStack Start
         </p>
         <SearchForm />
       </section>

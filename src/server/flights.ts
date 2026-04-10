@@ -3,7 +3,8 @@ import { getRequestHeaders } from '@tanstack/react-start/server'
 import { z } from 'zod'
 
 import { auth } from '#/lib/auth'
-import { searchFlights } from '#/lib/serpapi'
+import { searchFlights, fetchBookingOptions } from '#/lib/serpapi'
+import type { FlightResult, BookingOptionsResult } from '#/lib/serpapi'
 
 const searchSchema = z.object({
   origin: z.string().length(3).toUpperCase(),
@@ -20,14 +21,12 @@ const searchSchema = z.object({
 
 export const searchFlightsFn = createServerFn({ method: 'GET' })
   .inputValidator(searchSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<FlightResult> => {
     const session = await auth.api.getSession({
       headers: getRequestHeaders(),
     })
 
-    if (!session) {
-      throw new Error('Unauthorized')
-    }
+    if (!session) throw new Error('Unauthorized')
 
     return searchFlights({
       origin: data.origin,
@@ -38,4 +37,14 @@ export const searchFlightsFn = createServerFn({ method: 'GET' })
       passengers: data.passengers,
       travelClass: data.travelClass,
     })
+  })
+
+export const fetchBookingOptionsFn = createServerFn({ method: 'GET' })
+  .inputValidator(z.object({ bookingToken: z.string() }))
+  .handler(async ({ data }): Promise<BookingOptionsResult> => {
+    const session = await auth.api.getSession({
+      headers: getRequestHeaders(),
+    })
+    if (!session) throw new Error('Unauthorized')
+    return fetchBookingOptions(data.bookingToken)
   })

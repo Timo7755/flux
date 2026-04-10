@@ -24,12 +24,10 @@ type SearchParams = {
 export default function FlightCard({
   flight,
   offerId,
-  googleFlightsUrl,
   search,
 }: {
   flight: Flight
   offerId: string
-  googleFlightsUrl: string
   search: SearchParams
 }) {
   const first = flight.flights[0]
@@ -96,23 +94,15 @@ export default function FlightCard({
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2 border-t border-[var(--line)] pt-4">
+      <div className="mt-4 border-t border-[var(--line)] pt-4">
         <Link
           to="/search/offer/$offerId"
           params={{ offerId }}
           search={search}
-          className="flex-1 rounded-xl bg-[var(--brand-deep)] px-4 py-2 text-center text-sm font-semibold text-[var(--btn-text)] no-underline"
+          className="block w-full rounded-xl bg-[var(--brand-deep)] px-4 py-2 text-center text-sm font-semibold text-[var(--btn-text)] no-underline"
         >
-          View details
+          View details & book
         </Link>
-        <a
-          href={googleFlightsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="flex-1 rounded-xl border border-[var(--line)] px-4 py-2 text-center text-sm font-semibold text-[var(--sea-ink)] no-underline"
-        >
-          Open in Google Flights
-        </a>
       </div>
     </div>
   )

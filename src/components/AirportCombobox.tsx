@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-
-import { airports, searchAirports } from '#/lib/airports'
+import { airports, searchAirports, getAirportByIata } from '#/lib/airports'
 import type { Airport } from '#/lib/airports'
 
 type Props = {
@@ -51,6 +50,7 @@ export default function AirportCombobox({
     setQuery('')
     setOpen(false)
     onChange(airport.iata)
+    saveToHistory(airport.iata)
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -61,8 +61,46 @@ export default function AirportCombobox({
   }
 
   function handleFocus() {
-    if (!selected) setOpen(true)
+    setOpen(true)
   }
+
+  const regionNames = new Intl.DisplayNames(['en'], { type: 'region' })
+
+  function resolveCountry(code: string): string {
+    if (code.length !== 2) return code
+    try {
+      return regionNames.of(code.toUpperCase()) ?? code
+    } catch {
+      return code
+    }
+  }
+
+  const HISTORY_KEY = 'flux_airport_history'
+
+  function useAirportHistory() {
+    function getHistory(): Airport[] {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY)
+        const codes: string[] = raw ? JSON.parse(raw) : []
+        return codes.map(getAirportByIata).filter(Boolean) as Airport[]
+      } catch {
+        return []
+      }
+    }
+
+    function saveToHistory(iata: string) {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY)
+        const codes: string[] = raw ? JSON.parse(raw) : []
+        const updated = [iata, ...codes.filter((c) => c !== iata)].slice(0, 5)
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(updated))
+      } catch {}
+    }
+
+    return { getHistory, saveToHistory }
+  }
+
+  const { getHistory, saveToHistory } = useAirportHistory()
 
   return (
     <div ref={containerRef} className="flex flex-col gap-1 text-left">
@@ -86,7 +124,7 @@ export default function AirportCombobox({
                 {selected.city}
               </span>
               <span className="block text-xs text-[var(--input-placeholder)]">
-                {selected.name}
+                {selected.name} · {resolveCountry(selected.country)}
               </span>
             </div>
             <span className="block text-xs text-[var(--input-placeholder)] mt-0.5">
@@ -104,41 +142,54 @@ export default function AirportCombobox({
           />
         )}
 
-        {open && results.length > 0 && (
-          <ul
-            className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border border-[var(--dropdown-border)] shadow-xl"
-            style={{ background: 'var(--dropdown-bg)' }}
-          >
-            {results.map((airport) => (
-              <li key={airport.iata}>
-                <button
-                  type="button"
-                  onMouseDown={() => select(airport)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
-                  style={{ background: 'transparent' }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = 'var(--dropdown-hover)')
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = 'transparent')
-                  }
-                >
-                  <div className="flex flex-col gap-1 w-full">
-                    <span className="block text-sm font-semibold text-[var(--input-text)]">
-                      {airport.city}
-                      <span className="ml-1 font-normal text-[var(--input-placeholder)]">
-                        — {airport.country}
-                      </span>
+        {open &&
+          (() => {
+            const items = query.length > 0 ? results : getHistory()
+            if (items.length === 0) return null
+            return (
+              <ul
+                className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border border-[var(--dropdown-border)] shadow-xl"
+                style={{ background: 'var(--dropdown-bg)' }}
+              >
+                {query.length === 0 && (
+                  <li className="px-4 pt-3 pb-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
+                      Recent
                     </span>
-                    <span className="block text-xs text-[var(--input-placeholder)]">
-                      {airport.name}
-                    </span>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                  </li>
+                )}
+                {items.map((airport) => (
+                  <li key={airport.iata}>
+                    <button
+                      type="button"
+                      onMouseDown={() => select(airport)}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
+                      style={{ background: 'transparent' }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          'var(--dropdown-hover)')
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = 'transparent')
+                      }
+                    >
+                      <div className="flex flex-col gap-1 w-full">
+                        <span className="block text-sm font-semibold text-[var(--input-text)]">
+                          {airport.city}
+                          <span className="ml-1 font-normal text-[var(--input-placeholder)]">
+                            — {resolveCountry(airport.country)}
+                          </span>
+                        </span>
+                        <span className="block text-xs text-[var(--input-placeholder)]">
+                          {airport.name}
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
+          })()}
       </div>
     </div>
   )

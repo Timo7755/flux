@@ -47,19 +47,6 @@ const classLabels: Record<string, string> = {
   '4': 'First Class',
 }
 
-function buildGoogleFlightsUrl(opts: {
-  origin: string
-  destination: string
-  date: string
-  returnDate?: string
-  tripType: '1' | '2'
-}): string {
-  const params = new URLSearchParams({
-    q: `Flights from ${opts.origin} to ${opts.destination} on ${opts.date}`,
-  })
-  return `https://www.google.com/travel/flights?${params.toString()}`
-}
-
 function SearchPage() {
   const {
     origin,
@@ -180,7 +167,6 @@ function SearchResults({
   search: SearchParams
 }) {
   const flights = [...(data.best_flights ?? []), ...(data.other_flights ?? [])]
-  const googleFlightsUrl = buildGoogleFlightsUrl(search)
 
   return (
     <>
@@ -211,7 +197,6 @@ function SearchResults({
               key={i}
               flight={flight}
               offerId={String(i)}
-              googleFlightsUrl={googleFlightsUrl}
               search={search}
             />
           ))}

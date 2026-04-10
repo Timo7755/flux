@@ -1,9 +1,12 @@
 import { z } from 'zod'
-import { Link, createFileRoute, redirect } from '@tanstack/react-router'
+import { Link, Await, createFileRoute, redirect } from '@tanstack/react-router'
+
 import { authClient } from '#/lib/auth-client'
 import { searchFlightsFn } from '#/server/flights'
-import type { Flight, FlightResult } from '#/lib/serpapi'
+import type { Flight, FlightResult, BookingOption } from '#/lib/serpapi'
+
 import { airports } from '#/lib/airports'
+import { fetchBookingOptionsFn } from '#/server/flights'
 
 function cityName(iata: string): string {
   return airports.find((a) => a.iata === iata)?.city ?? iata
@@ -65,14 +68,20 @@ export const Route = createFileRoute('/search_/offer/$offerId')({
       ...(data.other_flights ?? []),
     ]
     const offer = flights[Number(params.offerId)] ?? null
-    return { offer, search: deps }
+
+    const bookingOptionsPromise = offer?.booking_token
+      ? fetchBookingOptionsFn({ data: { bookingToken: offer.booking_token } })
+      : Promise.resolve(null)
+
+    return { offer, search: deps, bookingOptionsPromise }
   },
+
   pendingComponent: OfferSkeleton,
   component: OfferPage,
 })
 
 function OfferPage() {
-  const { offer, search } = Route.useLoaderData()
+  const { offer, search, bookingOptionsPromise } = Route.useLoaderData()
 
   if (!offer) {
     return (
@@ -116,7 +125,10 @@ function OfferPage() {
         <FareNotes offer={offer} />
       )}
       {offer.carbon_emissions && <Emissions offer={offer} />}
-      <BookingSection offer={offer} />
+      <BookingSection
+        offer={offer}
+        bookingOptionsPromise={bookingOptionsPromise}
+      />
     </main>
   )
 }
@@ -274,17 +286,34 @@ function Emissions({ offer }: { offer: Flight }) {
   )
 }
 
-function BookingSection({ offer }: { offer: Flight }) {
-  const options = offer.booking_options?.filter((o) => o.url) ?? []
+function BookingSection({
+  offer,
+  bookingOptionsPromise,
+}: {
+  offer: Flight
+  bookingOptionsPromise: Promise<{ booking_options?: BookingOption[] } | null>
+}) {
+  const staticOptions = offer.booking_options?.filter((o) => o.url) ?? []
 
-  if (options.length === 0) {
+  if (staticOptions.length > 0) {
+    return (
+      <div className="island-shell rounded-2xl p-5">
+        <p className="mb-3 text-sm font-semibold text-[var(--sea-ink)]">
+          Book this flight
+        </p>
+        <BookingOptions options={staticOptions} />
+      </div>
+    )
+  }
+
+  if (!offer.booking_token) {
     return (
       <div className="island-shell rounded-2xl p-5 text-center">
         <p className="mb-1 text-sm font-semibold text-[var(--sea-ink)]">
           Book this flight
         </p>
         <p className="text-sm text-[var(--sea-ink-soft)]">
-          No direct booking links available.
+          No booking links available for this flight.
         </p>
       </div>
     )
@@ -295,26 +324,52 @@ function BookingSection({ offer }: { offer: Flight }) {
       <p className="mb-3 text-sm font-semibold text-[var(--sea-ink)]">
         Book this flight
       </p>
-      <div className="space-y-2">
-        {options.map((opt, i) => (
-          <a
-            key={i}
-            href={opt.url!}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-between rounded-xl border border-[var(--line)] px-4 py-3 no-underline hover:border-[var(--lagoon)]"
-          >
-            <span className="text-sm font-semibold text-[var(--sea-ink)]">
-              {opt.name ?? 'Book'}
+      <Await
+        promise={bookingOptionsPromise}
+        fallback={
+          <div className="flex items-center gap-2 text-sm text-[var(--sea-ink-soft)]">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--line)] border-t-[var(--lagoon-deep)]" />
+            Loading booking options…
+          </div>
+        }
+      >
+        {(result) => {
+          const options = result?.booking_options?.filter((o) => o.url) ?? []
+          if (options.length === 0) {
+            return (
+              <p className="text-sm text-[var(--sea-ink-soft)]">
+                No booking links available for this flight.
+              </p>
+            )
+          }
+          return <BookingOptions options={options} />
+        }}
+      </Await>
+    </div>
+  )
+}
+
+function BookingOptions({ options }: { options: BookingOption[] }) {
+  return (
+    <div className="space-y-2">
+      {options.map((opt, i) => (
+        <a
+          key={i}
+          href={opt.url!}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-between rounded-xl border border-[var(--line)] px-4 py-3 no-underline hover:border-[var(--lagoon)]"
+        >
+          <span className="text-sm font-semibold text-[var(--sea-ink)]">
+            {opt.name ?? 'Book'}
+          </span>
+          {opt.price && (
+            <span className="text-sm font-bold text-[var(--lagoon-deep)]">
+              €{opt.price}
             </span>
-            {opt.price && (
-              <span className="text-sm font-bold text-[var(--lagoon-deep)]">
-                €{opt.price}
-              </span>
-            )}
-          </a>
-        ))}
-      </div>
+          )}
+        </a>
+      ))}
     </div>
   )
 }

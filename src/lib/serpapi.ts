@@ -67,7 +67,7 @@ export type FlightResult = {
     status?: string
     created_at?: string
   }
-  search_parameters?: Record<string, unknown>
+  search_parameters?: Record<string, {}>
   best_flights?: Flight[]
   other_flights?: Flight[]
   price_insights?: {
@@ -107,4 +107,17 @@ export async function searchFlights(
   }
 
   return fetchSerpApi<FlightResult>(params)
+}
+
+export type BookingOptionsResult = {
+  booking_options?: BookingOption[]
+}
+
+export async function fetchBookingOptions(
+  bookingToken: string,
+): Promise<BookingOptionsResult> {
+  return fetchSerpApi<BookingOptionsResult>({
+    engine: 'google_flights',
+    booking_token: bookingToken,
+  })
 }
