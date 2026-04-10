@@ -70,7 +70,9 @@ export const Route = createFileRoute('/search_/offer/$offerId')({
     const offer = flights[Number(params.offerId)] ?? null
 
     const bookingOptionsPromise = offer?.booking_token
-      ? fetchBookingOptionsFn({ data: { bookingToken: offer.booking_token } })
+      ? fetchBookingOptionsFn({
+          data: { bookingToken: offer.booking_token },
+        }).catch(() => null)
       : Promise.resolve(null)
 
     return { offer, search: deps, bookingOptionsPromise }
@@ -171,7 +173,6 @@ function OfferHeader({
           <p className="text-3xl font-bold text-[var(--lagoon-deep)]">
             €{offer.price}
           </p>
-          <p className="text-xs text-[var(--sea-ink-soft)]">per person</p>
         </div>
       </div>
     </div>

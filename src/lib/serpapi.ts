@@ -7,7 +7,12 @@ function buildUrl(params: Record<string, string>): string {
     ...params,
     api_key: env.SERPAPI_KEY,
   })
-  return `${BASE_URL}?${searchParams.toString()}`
+  const url = `${BASE_URL}?${searchParams.toString()}`
+  console.log(
+    '[SerpAPI] Request URL:',
+    url.replace(env.SERPAPI_KEY, 'REDACTED'),
+  )
+  return url
 }
 
 async function fetchSerpApi<T>(params: Record<string, string>): Promise<T> {
@@ -119,5 +124,7 @@ export async function fetchBookingOptions(
   return fetchSerpApi<BookingOptionsResult>({
     engine: 'google_flights',
     booking_token: bookingToken,
+    currency: 'EUR',
+    hl: 'en',
   })
 }
